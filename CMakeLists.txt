@@ -3,4 +3,5 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(xiao-nrf52840-test-01)
 
-target_sources(app PRIVATE src/main.c)
+file(GLOB src src/*c)
+target_sources(app PRIVATE ${src})
