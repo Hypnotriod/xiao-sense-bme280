@@ -5,10 +5,10 @@
 
 #include "battery.h"
 
+LOG_MODULE_REGISTER(battery_service, LOG_LEVEL_INF);
+
 static volatile bool is_charging = false;
 static volatile uint16_t last_millivolt = 0;
-
-LOG_MODULE_REGISTER(battery_service, LOG_LEVEL_INF);
 
 static void battery_voltage_update(uint16_t millivolt) {
     uint8_t percentage = 0;
