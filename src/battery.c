@@ -192,6 +192,11 @@ static void sample_once_handler(struct k_work *work)
     run_sample_ready_callbacks(millivolt);
 }
 
+static int sample_buffer_comp(const void* a, const void* b)
+{
+    return (*(int16_t*)a - *(int16_t*)b);
+}
+
 //------------------------------------------------------------------------------------------
 // Public functions
 
@@ -238,10 +243,6 @@ int battery_set_slow_charge()
     }
 
     return gpio_pin_set_dt(&charge_speed, 0); // SLOW charge 50mA
-}
-
-int sample_buffer_comp(const void* a, const void* b) {
-    return (*(int16_t*)a - *(int16_t*)b);
 }
 
 int battery_get_millivolt(uint16_t *battery_millivolt)
