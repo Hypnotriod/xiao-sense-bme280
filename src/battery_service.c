@@ -5,10 +5,20 @@
 
 #include "battery.h"
 
+static volatile bool is_charging = false;
+static volatile uint16_t last_millivolt = 0;
+
 LOG_MODULE_REGISTER(battery_service, LOG_LEVEL_INF);
 
 static void battery_voltage_update(uint16_t millivolt) {
     uint8_t percentage = 0;
+
+    if (is_charging && millivolt < last_millivolt) {
+        millivolt = last_millivolt;
+    } else if (!is_charging && millivolt > last_millivolt) {
+        millivolt = last_millivolt;
+    }
+    last_millivolt = millivolt;
 
     int err = battery_get_percentage(&percentage, millivolt);
     if (err) {
@@ -16,16 +26,18 @@ static void battery_voltage_update(uint16_t millivolt) {
         return;
     }
 
-    LOG_INF("Battery is at %d mV (capacity %d%%)", millivolt, percentage);
+    LOG_INF("Battery is at %d mV (capacity %d%%, %s)", millivolt, percentage, is_charging ? "charging" : "discharging");
 
     bt_bas_set_battery_level(percentage);
 }
 
-static void battery_charging_state_update(bool is_charging) {
-    LOG_INF("Charger %s", is_charging ? "connected" : "disconnected");
+static void battery_charging_state_update(bool connected) {
+    is_charging = connected;
+    LOG_INF("Charger %s", connected ? "connected" : "disconnected");
 }
 
 int battery_service_start(void) {
+    uint16_t battery_millivolt;
     int err;
 
     err = battery_init();
@@ -51,6 +63,11 @@ int battery_service_start(void) {
         LOG_ERR("Failed to set battery fast charging (error %d)", err);
         return err;
     }
+
+    is_charging = battery_is_charging();
+    battery_get_millivolt(&battery_millivolt);
+    last_millivolt = battery_millivolt;
+    battery_voltage_update(battery_millivolt);
 
     battery_start_sampling(5000);
 

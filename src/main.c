@@ -1,14 +1,16 @@
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/bluetooth/gap.h>
 #include <zephyr/bluetooth/hci.h>
-#include <zephyr/bluetooth/services/bas.h>
 #include <zephyr/bluetooth/uuid.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 #include "battery_service.h"
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
+
+static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 
 static const struct bt_data ad[] = {
     BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
@@ -73,6 +75,8 @@ BT_CONN_CB_DEFINE(conn_callbacks) = {
 int main(void) {
     int err = 0;
 
+    gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+
     err = bt_enable(bt_ready);
     if (err) {
         LOG_ERR("Bluetooth initialization failed (err %d)", err);
@@ -83,6 +87,11 @@ int main(void) {
     if (err) {
         LOG_ERR("Failed to start battery service (error %d)", err);
         return 0;
+    }
+
+    while (true) {
+        k_msleep(1000);
+        gpio_pin_toggle_dt(&led);
     }
 
     return 0;

@@ -16,6 +16,7 @@
 
 #include "battery.h"
 
+#include <stdlib.h>
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
@@ -239,6 +240,10 @@ int battery_set_slow_charge()
     return gpio_pin_set_dt(&charge_speed, 0); // SLOW charge 50mA
 }
 
+int sample_buffer_comp(const void* a, const void* b) {
+    return (*(int16_t*)a - *(int16_t*)b);
+}
+
 int battery_get_millivolt(uint16_t *battery_millivolt)
 {
 
@@ -266,12 +271,13 @@ int battery_get_millivolt(uint16_t *battery_millivolt)
     }
 
     uint32_t adc_sum = 0;
+    qsort(sample_buffer, ADC_TOTAL_SAMPLES, sizeof(int16_t), sample_buffer_comp);
     // Get average sample value.
-    for (uint8_t sample = 0; sample < ADC_TOTAL_SAMPLES; sample++)
+    for (uint8_t sample = ADC_TOTAL_SAMPLES / 4; sample < ADC_TOTAL_SAMPLES / 4 * 3; sample++)
     {
         adc_sum += sample_buffer[sample]; // ADC value, not millivolt yet.
     }
-    uint32_t adc_average = adc_sum / ADC_TOTAL_SAMPLES;
+    uint32_t adc_average = adc_sum / (ADC_TOTAL_SAMPLES / 2);
 
     // Convert ADC value to millivolts
     uint32_t adc_mv = adc_average;
@@ -360,6 +366,11 @@ int battery_sample_once(void)
 {
     k_work_submit(&sample_once_work);
     return 0;
+}
+
+bool battery_is_charging(void)
+{
+    return gpio_pin_get_dt(&charging_enable);
 }
 
 int battery_init()
