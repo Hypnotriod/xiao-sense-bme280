@@ -192,7 +192,7 @@ static void sample_once_handler(struct k_work *work)
     run_sample_ready_callbacks(millivolt);
 }
 
-static int sample_buffer_comp(const void* a, const void* b)
+static int sample_buffer_compare(const void *a, const void *b)
 {
     return (*(int16_t*)a - *(int16_t*)b);
 }
@@ -272,9 +272,9 @@ int battery_get_millivolt(uint16_t *battery_millivolt)
     }
 
     uint32_t adc_sum = 0;
-    qsort(sample_buffer, ADC_TOTAL_SAMPLES, sizeof(int16_t), sample_buffer_comp);
-    // Get average sample value.
-    for (uint8_t sample = ADC_TOTAL_SAMPLES / 4; sample < ADC_TOTAL_SAMPLES / 4 * 3; sample++)
+    // Get median average sample value.
+    qsort(sample_buffer, ADC_TOTAL_SAMPLES, sizeof(int16_t), sample_buffer_compare);
+    for (uint8_t sample = ADC_TOTAL_SAMPLES / 4; sample < ADC_TOTAL_SAMPLES / 4 + ADC_TOTAL_SAMPLES / 2; sample++)
     {
         adc_sum += sample_buffer[sample]; // ADC value, not millivolt yet.
     }

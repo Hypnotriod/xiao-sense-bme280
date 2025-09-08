@@ -58,7 +58,6 @@ properties:
     type: int
     default: 12
     description: |
-      Should be divisible by 4.
       Change this to a higher number for better averages
       Note that increasing this holds up the thread / ADC for longer.
 
