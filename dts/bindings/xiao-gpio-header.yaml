@@ -1,0 +1,10 @@
+description: XIAO nrf52840 gpio header bindings
+
+compatible: "xiao-gpio-header"
+
+child-binding:
+  properties:
+    gpios:
+      type: phandle-array
+      required: true
+      description: The gpio header pins definition
