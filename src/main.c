@@ -10,14 +10,12 @@
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
-#define SLOW_DOWN_AD_RATE_AFTER_MS 30000
+#define SLOW_DOWN_AD_RATE_AFTER_SEC 30
 
 #define BT_LE_ADV_CONN_FAST \
     BT_LE_ADV_PARAM(BT_LE_ADV_OPT_CONN, BT_GAP_ADV_FAST_INT_MIN_2, BT_GAP_ADV_FAST_INT_MAX_2, NULL)
 
 #define BT_LE_ADV_CONN_SLOW BT_LE_ADV_PARAM(BT_LE_ADV_OPT_CONN, BT_GAP_ADV_SLOW_INT_MIN, BT_GAP_ADV_SLOW_INT_MAX, NULL)
-
-static struct k_work_delayable slow_down_ad_rate_work;
 
 static const struct bt_data ad[] = {BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
                                     BT_DATA_BYTES(BT_DATA_UUID16_ALL, BT_UUID_16_ENCODE(BT_UUID_BAS_VAL)),
@@ -26,6 +24,8 @@ static const struct bt_data ad[] = {BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENER
 static const struct bt_data sd[] = {
     BT_DATA(BT_DATA_NAME_COMPLETE, CONFIG_BT_DEVICE_NAME, sizeof(CONFIG_BT_DEVICE_NAME) - 1),
 };
+
+static struct k_work_delayable slow_down_ad_rate_work;
 
 static bool restart_adverisiment = false;
 
@@ -43,8 +43,7 @@ static void bt_ready(int err) {
         return;
     }
 
-    k_work_schedule(&slow_down_ad_rate_work, K_MSEC(SLOW_DOWN_AD_RATE_AFTER_MS));
-
+    k_work_schedule(&slow_down_ad_rate_work, K_SECONDS(SLOW_DOWN_AD_RATE_AFTER_SEC));
     LOG_INF("Advertising successfully started");
 }
 
@@ -52,8 +51,6 @@ static void bt_connected(struct bt_conn *conn, uint8_t err) {
     char addr[BT_ADDR_LE_STR_LEN];
 
     k_work_cancel_delayable(&slow_down_ad_rate_work);
-
-    restart_adverisiment = true;
 
     bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
     if (err) {
@@ -65,6 +62,8 @@ static void bt_connected(struct bt_conn *conn, uint8_t err) {
 
 static void bt_disconnected(struct bt_conn *conn, uint8_t reason) {
     char addr[BT_ADDR_LE_STR_LEN];
+
+    restart_adverisiment = true;
 
     bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
     LOG_INF("Disconnected from %s (reason 0x%02x)", addr, reason);
@@ -81,8 +80,8 @@ static void bt_recycled() {
         return;
     }
 
-    k_work_schedule(&slow_down_ad_rate_work, K_MSEC(SLOW_DOWN_AD_RATE_AFTER_MS));
-
+    k_work_schedule(&slow_down_ad_rate_work, K_SECONDS(SLOW_DOWN_AD_RATE_AFTER_SEC));
+    
     LOG_INF("Advertising successfully restarted");
 }
 
