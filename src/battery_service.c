@@ -10,7 +10,8 @@ LOG_MODULE_REGISTER(battery_service, LOG_LEVEL_INF);
 static volatile bool is_charging = false;
 static volatile uint16_t last_millivolt = 0;
 
-static void battery_voltage_update(uint16_t millivolt) {
+static void battery_voltage_update(uint16_t millivolt)
+{
     uint8_t percentage = 0;
 
     if (is_charging && millivolt < last_millivolt) {
@@ -31,12 +32,14 @@ static void battery_voltage_update(uint16_t millivolt) {
     bt_bas_set_battery_level(percentage);
 }
 
-static void battery_charging_state_update(bool connected) {
+static void battery_charging_state_update(bool connected)
+{
     is_charging = connected;
     LOG_INF("Charger %s", connected ? "connected" : "disconnected");
 }
 
-int battery_service_start(void) {
+int battery_service_start(void)
+{
     uint16_t battery_millivolt;
     int err;
 

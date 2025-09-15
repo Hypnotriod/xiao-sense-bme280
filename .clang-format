@@ -3,7 +3,15 @@ BasedOnStyle: Google
 IndentWidth: 4
 AccessModifierOffset: -4
 ColumnLimit: 120
-#BreakBeforeBraces: Allman
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterEnum: false
+  AfterFunction: true
+  AfterControlStatement: false
+  BeforeElse: false
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false

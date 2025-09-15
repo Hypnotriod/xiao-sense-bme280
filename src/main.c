@@ -29,7 +29,8 @@ static struct k_work_delayable slow_down_ad_rate_work;
 
 static bool restart_adverisiment = false;
 
-static void bt_ready(int err) {
+static void bt_ready(int err)
+{
     if (err) {
         LOG_ERR("Bluetooth initialization failed (err %d)", err);
         return;
@@ -48,7 +49,8 @@ static void bt_ready(int err) {
     LOG_INF("Advertising successfully started");
 }
 
-static void bt_connected(struct bt_conn *conn, uint8_t err) {
+static void bt_connected(struct bt_conn *conn, uint8_t err)
+{
     char addr[BT_ADDR_LE_STR_LEN];
 
     k_work_cancel_delayable(&slow_down_ad_rate_work);
@@ -61,7 +63,8 @@ static void bt_connected(struct bt_conn *conn, uint8_t err) {
     }
 }
 
-static void bt_disconnected(struct bt_conn *conn, uint8_t reason) {
+static void bt_disconnected(struct bt_conn *conn, uint8_t reason)
+{
     char addr[BT_ADDR_LE_STR_LEN];
 
     restart_adverisiment = true;
@@ -70,9 +73,11 @@ static void bt_disconnected(struct bt_conn *conn, uint8_t reason) {
     LOG_INF("Disconnected from %s (reason 0x%02x)", addr, reason);
 }
 
-static void bt_recycled() {
-    if (!restart_adverisiment)
+static void bt_recycled()
+{
+    if (!restart_adverisiment) {
         return;
+    }
     restart_adverisiment = false;
 
     int err = bt_le_adv_start(BT_LE_ADV_CONN_FAST, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
@@ -86,7 +91,8 @@ static void bt_recycled() {
     LOG_INF("Advertising successfully restarted");
 }
 
-static void slow_down_ad_rate(struct k_work *work) {
+static void slow_down_ad_rate(struct k_work *work)
+{
     int err;
 
     err = bt_le_adv_stop();
@@ -110,7 +116,8 @@ BT_CONN_CB_DEFINE(conn_callbacks) = {
     .recycled = bt_recycled,
 };
 
-int main(void) {
+int main(void)
+{
     int err;
 
     k_work_init_delayable(&slow_down_ad_rate_work, slow_down_ad_rate);
