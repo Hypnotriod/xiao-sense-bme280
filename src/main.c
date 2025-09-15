@@ -44,6 +44,7 @@ static void bt_ready(int err) {
     }
 
     k_work_schedule(&slow_down_ad_rate_work, K_SECONDS(SLOW_DOWN_AD_RATE_AFTER_SEC));
+
     LOG_INF("Advertising successfully started");
 }
 
@@ -81,7 +82,7 @@ static void bt_recycled() {
     }
 
     k_work_schedule(&slow_down_ad_rate_work, K_SECONDS(SLOW_DOWN_AD_RATE_AFTER_SEC));
-    
+
     LOG_INF("Advertising successfully restarted");
 }
 
