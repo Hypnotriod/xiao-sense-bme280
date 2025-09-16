@@ -27,7 +27,7 @@ static const struct bt_data sd[] = {
 
 static struct k_work_delayable slow_down_ad_rate_work;
 
-static bool restart_adverisiment = false;
+static bool restart_advertisement = false;
 
 static void bt_ready(int err)
 {
@@ -67,7 +67,7 @@ static void bt_disconnected(struct bt_conn *conn, uint8_t reason)
 {
     char addr[BT_ADDR_LE_STR_LEN];
 
-    restart_adverisiment = true;
+    restart_advertisement = true;
 
     bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
     LOG_INF("Disconnected from %s (reason 0x%02x)", addr, reason);
@@ -75,10 +75,10 @@ static void bt_disconnected(struct bt_conn *conn, uint8_t reason)
 
 static void bt_recycled()
 {
-    if (!restart_adverisiment) {
+    if (!restart_advertisement) {
         return;
     }
-    restart_adverisiment = false;
+    restart_advertisement = false;
 
     int err = bt_le_adv_start(BT_LE_ADV_CONN_FAST, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
     if (err) {
