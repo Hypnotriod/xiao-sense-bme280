@@ -6,6 +6,7 @@
 #include <zephyr/logging/log.h>
 
 #include "battery_service.h"
+#include "bme280_service.h"
 #include "led_service.h"
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
@@ -17,9 +18,10 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
 #define BT_LE_ADV_CONN_SLOW BT_LE_ADV_PARAM(BT_LE_ADV_OPT_CONN, BT_GAP_ADV_SLOW_INT_MIN, BT_GAP_ADV_SLOW_INT_MAX, NULL)
 
-static const struct bt_data ad[] = {BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
-                                    BT_DATA_BYTES(BT_DATA_UUID16_ALL, BT_UUID_16_ENCODE(BT_UUID_BAS_VAL)),
-                                    BT_DATA_BYTES(BT_DATA_UUID128_ALL, LED_SERVICE_UUID)};
+static const struct bt_data ad[] = {
+    BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
+    BT_DATA_BYTES(BT_DATA_UUID16_ALL, BT_UUID_16_ENCODE(BT_UUID_BAS_VAL), BT_UUID_16_ENCODE(BT_UUID_ESS_VAL)),
+    BT_DATA_BYTES(BT_DATA_UUID128_ALL, LED_SERVICE_UUID)};
 
 static const struct bt_data sd[] = {
     BT_DATA(BT_DATA_NAME_COMPLETE, CONFIG_BT_DEVICE_NAME, sizeof(CONFIG_BT_DEVICE_NAME) - 1),
@@ -125,6 +127,12 @@ int main(void)
     err = bt_enable(bt_ready);
     if (err) {
         LOG_ERR("Bluetooth initialization failed (err %d)", err);
+        return 0;
+    }
+
+    err = bme280_service_start();
+    if (err) {
+        LOG_ERR("Failed to start bme280 service (error %d)", err);
         return 0;
     }
 

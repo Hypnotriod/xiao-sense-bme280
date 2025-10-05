@@ -5,6 +5,8 @@
 
 #include "battery.h"
 
+#define SAMPLING_INTERVAL_MS 5000
+
 LOG_MODULE_REGISTER(battery_service, LOG_LEVEL_INF);
 
 static volatile bool is_charging = false;
@@ -72,7 +74,7 @@ int battery_service_start(void)
     last_millivolt = battery_millivolt;
     battery_voltage_update(battery_millivolt);
 
-    battery_start_sampling(5000);
+    battery_start_sampling(SAMPLING_INTERVAL_MS);
 
     return 0;
 }
