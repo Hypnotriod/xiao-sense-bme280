@@ -1,4 +1,4 @@
-#include "bme280_service.h"
+#include "environmental_service.h"
 
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/gatt.h>
@@ -167,7 +167,7 @@ static void blvl_ccc_humidity_cfg_changed(const struct bt_gatt_attr *attr, uint1
     LOG_INF("Humidity notifications %s", enabled ? "enabled" : "disabled");
 }
 
-int bme280_service_start(void)
+int environmental_service_start(void)
 {
     if (bme280_dev == NULL) {
         LOG_ERR("No BME280 device found");
@@ -175,7 +175,7 @@ int bme280_service_start(void)
     }
 
     if (!device_is_ready(bme280_dev)) {
-        LOG_ERR("No BME280 device is not ready");
+        LOG_ERR("BME280 device is not ready");
         return -EIO;
     }
 

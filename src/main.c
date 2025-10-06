@@ -6,7 +6,7 @@
 #include <zephyr/logging/log.h>
 
 #include "battery_service.h"
-#include "bme280_service.h"
+#include "environmental_service.h"
 #include "led_service.h"
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
@@ -130,21 +130,21 @@ int main(void)
         return 0;
     }
 
-    err = bme280_service_start();
+    err = environmental_service_start();
     if (err) {
-        LOG_ERR("Failed to start bme280 service (error %d)", err);
+        LOG_ERR("Failed to start Environmental Sensing Service (error %d)", err);
         return 0;
     }
 
     err = battery_service_start();
     if (err) {
-        LOG_ERR("Failed to start battery service (error %d)", err);
+        LOG_ERR("Failed to start Battery Service (error %d)", err);
         return 0;
     }
 
     err = led_service_start();
     if (err) {
-        LOG_ERR("Failed to start LED service (err %d)", err);
+        LOG_ERR("Failed to start LED Service (err %d)", err);
         return 0;
     }
 
