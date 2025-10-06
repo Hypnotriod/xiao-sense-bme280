@@ -167,17 +167,6 @@ static void blvl_ccc_humidity_cfg_changed(const struct bt_gatt_attr *attr, uint1
     LOG_INF("Humidity notifications %s", enabled ? "enabled" : "disabled");
 }
 
-static void trace_service_attributes()
-{
-    uint16_t i;
-    char buff[64];
-
-    for (i = 0; i < ess_service.attr_count; i++) {
-        bt_uuid_to_str(ess_service.attrs[i].uuid, buff, sizeof(buff));
-        LOG_INF("Attribute %d UUID: %s", i, buff);
-    }
-}
-
 int bme280_service_start(void)
 {
     if (bme280_dev == NULL) {
