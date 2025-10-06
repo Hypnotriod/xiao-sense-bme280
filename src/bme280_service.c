@@ -22,8 +22,31 @@ SENSOR_DT_READ_IODEV(bme280_iodev, DT_COMPAT_GET_ANY_STATUS_OKAY(bosch_bme280), 
 RTIO_DEFINE(bme280_ctx, 1, 1);
 
 const struct sensor_decoder_api *decoder;
-
 static struct k_work_delayable sample_periodic_work;
+
+static const struct bt_gatt_cpf temperature_att_format_cpf = {
+    .format = 0x0E, /* sint16 */
+    .exponent = -2,
+    .unit = 0x272F,        /* Degree Celsius */
+    .name_space = 0x01,    /* Bluetooth SIG */
+    .description = 0x010C, /* "outside" */
+};
+
+static const struct bt_gatt_cpf pressure_att_format_cpf = {
+    .format = 0x0E, /* sint16 */
+    .exponent = 0,
+    .unit = 0x2724,        /* Pascal (1 hPa = 100 Pa) */
+    .name_space = 0x01,    /* Bluetooth SIG */
+    .description = 0x010C, /* "outside" */
+};
+
+static const struct bt_gatt_cpf humidity_att_format_cpf = {
+    .format = 0x0E, /* sint16 */
+    .exponent = -2,
+    .unit = 0x2A6F,        /* Humidity */
+    .name_space = 0x01,    /* Bluetooth SIG */
+    .description = 0x010C, /* "outside" */
+};
 
 static ssize_t read_temperature(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len,
                                 uint16_t offset);
@@ -39,12 +62,15 @@ BT_GATT_SERVICE_DEFINE(ess_service, BT_GATT_PRIMARY_SERVICE(BT_UUID_ESS),
                        BT_GATT_CHARACTERISTIC(BT_UUID_TEMPERATURE, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
                                               BT_GATT_PERM_READ, read_temperature, NULL, NULL),
                        BT_GATT_CCC(blvl_ccc_temperature_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+                       BT_GATT_CPF(&temperature_att_format_cpf),
                        BT_GATT_CHARACTERISTIC(BT_UUID_PRESSURE, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
                                               BT_GATT_PERM_READ, read_pressure, NULL, NULL),
                        BT_GATT_CCC(blvl_ccc_pressure_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+                       BT_GATT_CPF(&pressure_att_format_cpf),
                        BT_GATT_CHARACTERISTIC(BT_UUID_HUMIDITY, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
                                               BT_GATT_PERM_READ, read_humidity, NULL, NULL),
-                       BT_GATT_CCC(blvl_ccc_humidity_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE), );
+                       BT_GATT_CCC(blvl_ccc_humidity_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+                       BT_GATT_CPF(&humidity_att_format_cpf), );
 
 static int16_t temperature = 0;
 static int16_t pressure = 0;
@@ -90,8 +116,8 @@ static void sample_periodic_handler(struct k_work *work)
     humidity = sensor_q31_data_to_int16_attr(&hum_data);
 
     bt_gatt_notify(NULL, &ess_service.attrs[2], &temperature, sizeof(temperature));
-    bt_gatt_notify(NULL, &ess_service.attrs[5], &pressure, sizeof(pressure));
-    bt_gatt_notify(NULL, &ess_service.attrs[8], &humidity, sizeof(humidity));
+    bt_gatt_notify(NULL, &ess_service.attrs[6], &pressure, sizeof(pressure));
+    bt_gatt_notify(NULL, &ess_service.attrs[10], &humidity, sizeof(humidity));
 
     LOG_INF("Temp: %s%d.%d DegC; Press: %s%d.%d hPa; Humidity: %s%d.%d %%RH",
             PRIq_arg(temp_data.readings[0].temperature, 2, temp_data.shift),
