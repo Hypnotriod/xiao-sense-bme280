@@ -10,14 +10,14 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/rtio/rtio.h>
 
-LOG_MODULE_REGISTER(bme280_service, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(environmental_service, LOG_LEVEL_INF);
 
 #define SAMPLING_INTERVAL_MS 5000
 
-const struct device *const bme280_dev = DEVICE_DT_GET_ANY(bosch_bme280);
+const struct device *const bme280_dev = DEVICE_DT_GET(DT_NODELABEL(bme280_dev));
 
-SENSOR_DT_READ_IODEV(bme280_iodev, DT_COMPAT_GET_ANY_STATUS_OKAY(bosch_bme280), {SENSOR_CHAN_AMBIENT_TEMP, 0},
-                     {SENSOR_CHAN_HUMIDITY, 0}, {SENSOR_CHAN_PRESS, 0});
+SENSOR_DT_READ_IODEV(bme280_iodev, DT_NODELABEL(bme280_dev), {SENSOR_CHAN_AMBIENT_TEMP, 0}, {SENSOR_CHAN_HUMIDITY, 0},
+                     {SENSOR_CHAN_PRESS, 0});
 
 RTIO_DEFINE(bme280_ctx, 1, 1);
 
