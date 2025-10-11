@@ -81,8 +81,10 @@
                         services: [BAS_ID, ESS_ID, AIOS_ID],
                     }]
                 });
-                const server = await device.gatt.connect();
+                device.addEventListener('gattserverdisconnected', onDisconnected);
                 updateButtons();
+
+                const server = await device.gatt.connect();
 
                 const bas = await server.getPrimaryService(BAS_ID);
                 manageCharacteristic(bas, UUID_BAS_BATTERY_LEVEL, (value) => updateCharUint8Value('battery_level', '%', value));
@@ -110,6 +112,9 @@
             } catch (e) {
                 console.error(e);
             }
+        }
+
+        const onDisconnected = () => {
             device = null;
             digitalOutputChar = null;
             updateButtons();
