@@ -32,12 +32,20 @@
     <script>
         const BAS_ID = 0x180F; // Battery Service 
         const ESS_ID = 0x181A; // Environmental Sensing Service
+        const AIOS_ID = 0x1815; // Automation IO Service
         const UUID_BAS_BATTERY_LEVEL = 0x2a19; // Battery Level Characteristic
         const UUID_TEMPERATURE = 0x2a6e; // Temperature Characteristic
         const UUID_PRESSURE = 0x2a6d; // Pressure Characteristic
         const UUID_HUMIDITY = 0x2a6f; // Humidity Characteristic
+        const UUID_GATT_DO = 0x2a57; // Digital Output Characteristic
+
+        const IO_MASK_0 = 0x01;
+        const IO_MASK_1 = 0x04;
+        const IO_MASK_2 = 0x20;
 
         let device = null;
+        let digitalOutputChar = null;
+        let digitalOutputState = 0;
 
         const readInt16Value = (value) => {
             const b0 = value.getUint8(0);
@@ -68,17 +76,29 @@
             if (device) return;
             try {
                 device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: [BAS_ID, ESS_ID] }]
+                    filters: [{
+                        name: 'XIAO-SENSE',
+                        services: [BAS_ID, ESS_ID, AIOS_ID],
+                    }]
                 });
                 const server = await device.gatt.connect();
                 updateButtons();
+
                 const bas = await server.getPrimaryService(BAS_ID);
                 manageCharacteristic(bas, UUID_BAS_BATTERY_LEVEL, (value) => updateCharUint8Value('battery_level', '%', value));
+
                 const ess = await server.getPrimaryService(ESS_ID);
                 manageCharacteristic(ess, UUID_TEMPERATURE, (value) => updateCharInt16Value('temperature', 'C', value, -2));
                 manageCharacteristic(ess, UUID_HUMIDITY, (value) => updateCharInt16Value('hymidity', '%', value, -2));
                 manageCharacteristic(ess, UUID_PRESSURE, (value) => updateCharInt16Value('pressure', 'hPa', value, 0));
+
+                const aios = await server.getPrimaryService(AIOS_ID);
+                digitalOutputChar = await aios.getCharacteristic(UUID_GATT_DO);
+                const value = await digitalOutputChar.readValue();
+                digitalOutputState = value.getUint8(0);
+                updateLedButtons();
             } catch (e) {
+                console.error(e);
                 disconnect();
             }
         }
@@ -87,8 +107,11 @@
             if (!device) return;
             try {
                 device.gatt.disconnect();
-            } catch (e) { }
+            } catch (e) {
+                console.error(e);
+            }
             device = null;
+            digitalOutputChar = null;
             updateButtons();
         }
 
@@ -100,6 +123,35 @@
                 document.getElementById('btn_disconnect').classList.add('hide');
                 document.getElementById('btn_connect').classList.remove('hide');
             }
+        }
+
+        const updateLedButton = (id, color, mask) => {
+            if (digitalOutputState & mask) {
+                document.getElementById(id).classList.add(color);
+                document.getElementById(id).classList.remove('grey');
+            } else {
+                document.getElementById(id).classList.add('grey');
+                document.getElementById(id).classList.remove(color);
+            }
+        }
+
+        const updateLedButtons = () => {
+            updateLedButton('btn_led_red', 'red', IO_MASK_0);
+            updateLedButton('btn_led_green', 'green', IO_MASK_1);
+            updateLedButton('btn_led_blue', 'blue', IO_MASK_2);
+        }
+
+        const toggleDigitalOutput = (mask) => {
+            if (!digitalOutputChar) return;
+            digitalOutputState ^= mask;
+            const buff = new Uint8Array(new ArrayBuffer(Uint8Array.BYTES_PER_ELEMENT));
+            buff[0] = digitalOutputState;
+            try {
+                digitalOutputChar.writeValue(buff);
+            } catch (e) {
+                console.error(e);
+            }
+            updateLedButtons();
         }
     </script>
 </head>
@@ -116,17 +168,31 @@
             <div class="valign-wrapper">
                 <i class="material-icons white-text">beach_access</i>
                 <p class="orange-text">
-                    Temperature <span class="white-text right-align" id="temperature"></span></p>
+                    Temperature <span class="white-text" id="temperature"></span></p>
             </div>
             <div class="valign-wrapper">
                 <i class="material-icons white-text">invert_colors</i>
                 <p class="orange-text">
-                    Humidity <span class="white-text right-align" id="hymidity"></span></p>
+                    Humidity <span class="white-text" id="hymidity"></span></p>
             </div>
             <div class="valign-wrapper">
                 <i class="material-icons white-text">cloud</i>
                 <p class="orange-text">
-                    Pressure <span class="white-text right-align" id="pressure"></span></p>
+                    Pressure <span class="white-text" id="pressure"></span></p>
+            </div>
+            <div class="valign-wrapper">
+                <p>
+                    <button id="btn_led_red" class="btn-floating grey"
+                        onclick="toggleDigitalOutput(IO_MASK_0)">R</button>
+                </p>
+                <p>
+                    <button id="btn_led_green" class="btn-floating grey"
+                        onclick="toggleDigitalOutput(IO_MASK_1)">G</button>
+                </p>
+                <p>
+                    <button id="btn_led_blue" class="btn-floating grey"
+                        onclick="toggleDigitalOutput(IO_MASK_2)">B</button>
+                </p>
             </div>
         </div>
         <div class="card-action center">

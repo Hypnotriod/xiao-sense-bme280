@@ -5,9 +5,9 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
+#include "automation_io_service.h"
 #include "battery_service.h"
 #include "environmental_service.h"
-#include "led_service.h"
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
@@ -20,8 +20,9 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
 static const struct bt_data ad[] = {
     BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
-    BT_DATA_BYTES(BT_DATA_UUID16_ALL, BT_UUID_16_ENCODE(BT_UUID_BAS_VAL), BT_UUID_16_ENCODE(BT_UUID_ESS_VAL)),
-    BT_DATA_BYTES(BT_DATA_UUID128_ALL, LED_SERVICE_UUID)};
+    BT_DATA_BYTES(BT_DATA_UUID16_ALL, BT_UUID_16_ENCODE(BT_UUID_BAS_VAL), BT_UUID_16_ENCODE(BT_UUID_ESS_VAL),
+                  BT_UUID_16_ENCODE(BT_UUID_AIOS_VAL)),
+};
 
 static const struct bt_data sd[] = {
     BT_DATA(BT_DATA_NAME_COMPLETE, CONFIG_BT_DEVICE_NAME, sizeof(CONFIG_BT_DEVICE_NAME) - 1),
@@ -142,7 +143,7 @@ int main(void)
         return 0;
     }
 
-    err = led_service_start();
+    err = automation_io_service_start();
     if (err) {
         LOG_ERR("Failed to start LED Service (err %d)", err);
         return 0;
