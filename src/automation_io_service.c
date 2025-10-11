@@ -35,7 +35,7 @@ static ssize_t write_do_state(struct bt_conn *conn, const struct bt_gatt_attr *a
     leds_state = state;
     update_led_state(&led0, 0, state & 0x01);
     update_led_state(&led1, 1, state & 0x04);
-    update_led_state(&led2, 2, state & 0x20);
+    update_led_state(&led2, 2, state & 0x10);
 
     return len;
 }
