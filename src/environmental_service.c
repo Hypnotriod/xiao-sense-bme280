@@ -1,5 +1,6 @@
 #include "environmental_service.h"
 
+#include <math.h>
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/device.h>
@@ -24,6 +25,8 @@ RTIO_DEFINE(bme280_ctx, 1, 1);
 const struct sensor_decoder_api *decoder;
 static struct k_work_delayable sample_periodic_work;
 
+#define sensor_value_format(val) (val / 100), ((val & (~0x8000)) % 100)
+
 static const struct bt_gatt_cpf temperature_att_format_cpf = {
     .format = 0x0E, /* sint16 */
     .exponent = -2,
@@ -34,7 +37,7 @@ static const struct bt_gatt_cpf temperature_att_format_cpf = {
 
 static const struct bt_gatt_cpf pressure_att_format_cpf = {
     .format = 0x0E, /* sint16 */
-    .exponent = 0,
+    .exponent = 2,
     .unit = 0x2724,        /* Pascal (1 hPa = 100 Pa) */
     .name_space = 0x01,    /* Bluetooth SIG */
     .description = 0x010C, /* "outside" */
@@ -76,12 +79,12 @@ static int16_t temperature = 0;
 static int16_t pressure = 0;
 static int16_t humidity = 0;
 
-static int16_t sensor_q31_data_to_int16_attr(struct sensor_q31_data *data)
+static int16_t sensor_q31_data_to_int16_attr(struct sensor_q31_data *data, uint8_t pow)
 {
     float32_t v = data->readings[0].value;
     int8_t s = data->shift;
 
-    return v / (1 << (31 - s)) * 100.f;
+    return v / (1 << (31 - s)) * powf(10.0f, (float32_t)pow);
 }
 
 static void sample_periodic_handler(struct k_work *work)
@@ -111,18 +114,16 @@ static void sample_periodic_handler(struct k_work *work)
     decoder->decode(buff, (struct sensor_chan_spec){SENSOR_CHAN_PRESS, 0}, &press_fit, 1, &press_data);
     decoder->decode(buff, (struct sensor_chan_spec){SENSOR_CHAN_HUMIDITY, 0}, &hum_fit, 1, &hum_data);
 
-    temperature = sensor_q31_data_to_int16_attr(&temp_data);
-    pressure = sensor_q31_data_to_int16_attr(&press_data);
-    humidity = sensor_q31_data_to_int16_attr(&hum_data);
+    temperature = sensor_q31_data_to_int16_attr(&temp_data, 2);
+    pressure = sensor_q31_data_to_int16_attr(&press_data, 1);
+    humidity = sensor_q31_data_to_int16_attr(&hum_data, 2);
 
     bt_gatt_notify(NULL, &ess_service.attrs[2], &temperature, sizeof(temperature));
     bt_gatt_notify(NULL, &ess_service.attrs[6], &pressure, sizeof(pressure));
     bt_gatt_notify(NULL, &ess_service.attrs[10], &humidity, sizeof(humidity));
 
-    LOG_INF("Temp: %s%d.%d DegC; Press: %s%d.%d hPa; Humidity: %s%d.%d %%RH",
-            PRIq_arg(temp_data.readings[0].temperature, 2, temp_data.shift),
-            PRIq_arg(press_data.readings[0].pressure, 2, press_data.shift),
-            PRIq_arg(hum_data.readings[0].humidity, 2, hum_data.shift));
+    LOG_INF("Temp: %i.%i DegC; Press: %i hPa; Humidity: %i.%i %%RH", sensor_value_format(temperature), pressure,
+            sensor_value_format(humidity));
 
 reschedule:
     k_work_reschedule(&sample_periodic_work, K_MSEC(SAMPLING_INTERVAL_MS));
