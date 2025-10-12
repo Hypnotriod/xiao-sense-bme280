@@ -7,7 +7,7 @@
 
 LOG_MODULE_REGISTER(automation_io_service, LOG_LEVEL_INF);
 
-#define NUM_OF_DIGITALS 3
+static const uint8_t NUM_OF_DIGITALS[] = {3};
 
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
@@ -51,17 +51,17 @@ static ssize_t read_do_state(struct bt_conn *conn, const struct bt_gatt_attr *at
 static ssize_t read_num_of_digitals(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len,
                                     uint16_t offset)
 {
-    uint8_t num = NUM_OF_DIGITALS;
+    uint8_t num = *NUM_OF_DIGITALS;
 
     return bt_gatt_attr_read(conn, attr, buf, len, offset, &num, sizeof(num));
 }
 
 BT_GATT_SERVICE_DEFINE(automation_io_service, BT_GATT_PRIMARY_SERVICE(BT_UUID_AIOS),
-                       BT_GATT_CHARACTERISTIC(BT_UUID_GATT_NUM_OF_DIGITALS, BT_GATT_CHRC_READ, BT_GATT_PERM_READ,
-                                              read_num_of_digitals, NULL, NULL),
                        BT_GATT_CHARACTERISTIC(BT_UUID_GATT_DO, (BT_GATT_CHRC_WRITE | BT_GATT_CHRC_READ),
                                               (BT_GATT_PERM_WRITE | BT_GATT_PERM_READ), read_do_state, write_do_state,
-                                              NULL), );
+                                              NULL),
+                       BT_GATT_DESCRIPTOR(BT_UUID_GATT_NUM_OF_DIGITALS, BT_GATT_PERM_READ, read_num_of_digitals, NULL,
+                                          (void *)NUM_OF_DIGITALS), );
 
 int automation_io_service_start(void)
 {
