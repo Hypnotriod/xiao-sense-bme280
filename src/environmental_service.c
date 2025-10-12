@@ -25,7 +25,7 @@ RTIO_DEFINE(bme280_ctx, 1, 1);
 const struct sensor_decoder_api *decoder;
 static struct k_work_delayable sample_periodic_work;
 
-#define sensor_value_format(val) (val / 100), ((val & (~0x8000)) % 100)
+#define SENSOR_VAL_FORMAT(val) (val / 100), abs(val % 100)
 
 static const struct bt_gatt_cpf temperature_att_format_cpf = {
     .format = 0x0E, /* sint16 */
@@ -122,8 +122,8 @@ static void sample_periodic_handler(struct k_work *work)
     bt_gatt_notify(NULL, &ess_service.attrs[6], &pressure, sizeof(pressure));
     bt_gatt_notify(NULL, &ess_service.attrs[10], &humidity, sizeof(humidity));
 
-    LOG_INF("Temp: %i.%i DegC; Press: %i hPa; Humidity: %i.%i %%RH", sensor_value_format(temperature), pressure,
-            sensor_value_format(humidity));
+    LOG_INF("Temp: %i.%i DegC; Press: %i hPa; Humidity: %i.%i %%RH", SENSOR_VAL_FORMAT(temperature), pressure,
+            SENSOR_VAL_FORMAT(humidity));
 
 reschedule:
     k_work_reschedule(&sample_periodic_work, K_MSEC(SAMPLING_INTERVAL_MS));
