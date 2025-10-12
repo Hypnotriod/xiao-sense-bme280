@@ -27,6 +27,10 @@
             transform: translate(-50%, -50%);
             border-radius: 5px;
         }
+
+        .min-width-200px {
+            min-width: 200px;
+        }
     </style>
 
     <script>
@@ -146,24 +150,24 @@
             updateLedButton('btn_led_blue', 'blue', IO_MASK_2);
         }
 
-        const toggleDigitalOutput = (mask) => {
+        const toggleDigitalOutput = async (mask) => {
             if (!digitalOutputChar) return;
-            digitalOutputState ^= mask;
-            const buff = new Uint8Array(new ArrayBuffer(Uint8Array.BYTES_PER_ELEMENT));
-            buff[0] = digitalOutputState;
+            const state = digitalOutputState ^ mask;
+            const buff = new Uint8Array([state]);
             try {
-                digitalOutputChar.writeValue(buff);
+                await digitalOutputChar.writeValue(buff);
+                digitalOutputState = state;
+                updateLedButtons();
             } catch (e) {
                 console.error(e);
             }
-            updateLedButtons();
         }
     </script>
 </head>
 
 <body>
     <div class="wrapper card blue-grey darken-1 white-text">
-        <div class="card-content">
+        <div class="card-content min-width-200px">
             <span class="card-title center">XIAO-Sense</span>
             <div class="valign-wrapper">
                 <i class="material-icons white-text">battery_std</i>
