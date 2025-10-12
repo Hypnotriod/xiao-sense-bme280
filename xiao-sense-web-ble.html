@@ -78,9 +78,13 @@
                 (event) => onValue(event.target.value));
         }
 
+        const getAltitude = () => Number(document.getElementById('altitude').value) ?? 0;
+        const setAltitude = (altitude) => (document.getElementById('altitude').value = String(altitude));
+        const setAltitudeLabelFocus = (altitude) => document.getElementById('altitude').focus();
+
         // https://en.wikipedia.org/wiki/Pressure_altitude
         const adjustPressure = (pressure) => {
-            const altitude = Number(document.getElementById('altitude').value) ?? 0;
+            const altitude = getAltitude();
             const offset = (1013.25 - 1013.25 * Math.E ** (-altitude / 8431));
             return pressure + offset;
         }
@@ -171,6 +175,18 @@
                 console.error(e);
             }
         }
+
+        const onAltitudeInput = () => {
+            const textArea = document.getElementById('altitude');
+            textArea.value = textArea.value.replace(/[^0-9]/g, '');
+            localStorage.setItem('altitude', getAltitude());
+        }
+
+        window.onload = () => {
+            const altitude = localStorage.getItem('altitude') ?? '';
+            setAltitude(altitude);
+            setAltitudeLabelFocus();
+        }
     </script>
 </head>
 
@@ -199,8 +215,7 @@
                     Pressure <span class="white-text" id="pressure"></span></p>
             </div>
             <div class="input-field">
-                <textarea id="altitude" class="materialize-textarea white-text"
-                    oninput="this.value = this.value.replace(/[^0-9]/g, '');"></textarea>
+                <textarea id="altitude" class="materialize-textarea white-text" oninput="onAltitudeInput()"></textarea>
                 <label for="altitude">Altitude in meters</label>
             </div>
             <div class="valign-wrapper">
