@@ -25,7 +25,7 @@ RTIO_DEFINE(bme280_ctx, 1, 1);
 const struct sensor_decoder_api *decoder;
 static struct k_work_delayable sample_periodic_work;
 
-#define SENSOR_VAL_FORMAT(val) (val / 100), abs(val % 100)
+#define SENSOR_VAL_FORMAT(val) (val / 100), abs(val) % 100
 
 static const struct bt_gatt_cpf temperature_att_format_cpf = {
     .format = 0x0E, /* sint16 */
