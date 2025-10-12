@@ -80,7 +80,8 @@
         // https://en.wikipedia.org/wiki/Pressure_altitude
         const adjustPressure = (pressure) => {
             const altitude = Number(document.getElementById('altitude').value) ?? 0;
-            return pressure - 1013.25 * Math.E ** (-altitude / 8431) + 1013.25;
+            const offset = (1013.25 - 1013.25 * Math.E ** (-altitude / 8431));
+            return pressure + offset;
         }
 
         const requestDevice = async () => {
