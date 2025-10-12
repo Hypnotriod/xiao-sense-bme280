@@ -60,12 +60,13 @@
 
         const updateCharUint8Value = (id, symbol, value) => {
             const val = value.getUint8(0);
-            document.getElementById(id).innerHTML = `${val}${symbol}`;
+            document.getElementById(id).innerHTML = `<b>${val}<span class="blue-text text-lighten-2">${symbol}</span></b>`;
         }
 
         const updateCharInt16Value = (id, symbol, value, pow, map = (v) => v) => {
             const val = map(readInt16Value(value));
-            document.getElementById(id).innerHTML = `${(val * (10 ** pow)).toFixed(-pow)}${symbol}`;
+            document.getElementById(id).innerHTML =
+                `<b>${(val * (10 ** pow)).toFixed(-pow)}<span class="blue-text text-lighten-2">${symbol}</span></b>`;
         }
 
         const manageCharacteristic = async (service, charId, onValue) => {
