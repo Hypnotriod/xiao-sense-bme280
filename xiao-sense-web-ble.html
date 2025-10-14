@@ -123,7 +123,10 @@
         }
 
         const disconnect = () => {
-            if (!device) return;
+            if (!device) {
+                onDisconnected();
+                return;
+            }
             try {
                 device.gatt.disconnect();
             } catch (e) {
