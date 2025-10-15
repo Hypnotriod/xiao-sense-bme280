@@ -83,6 +83,8 @@
         const setAltitudeLabelFocus = (altitude) => document.getElementById('altitude').focus();
 
         // https://en.wikipedia.org/wiki/Pressure_altitude
+        // altitude = (1 - (pressure / localPressure) ** 0.190284) * 44307.694
+        // where the pressure is in hPa or millibar and altitude is in meters
         const adjustPressure = (pressure) => {
             const altitude = getAltitude();
             const offset = (1013.25 - 1013.25 * Math.E ** (-altitude / 8431));
