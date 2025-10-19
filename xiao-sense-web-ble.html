@@ -48,7 +48,7 @@
         const IO_MASK_1 = 0x04;
         const IO_MASK_2 = 0x10;
 
-        const RECONNECT_DELAYS_MS = [1500, 3000, 5000];
+        const RECONNECT_DELAYS_MS = [1500, 3000, 5000, 10000];
 
         let device = null;
         let forceDisconnect = false;
@@ -134,6 +134,7 @@
                 device.addEventListener('gattserverdisconnected', onDisconnected);
 
                 setCartTitle(device.name);
+                reconnectAttempts = 0;
                 updateLedButtons();
             } catch (e) {
                 console.error(e);
