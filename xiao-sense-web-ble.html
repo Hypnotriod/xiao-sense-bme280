@@ -69,7 +69,7 @@
             document.getElementById(id).innerHTML = `<b>${val}<span class="blue-text text-lighten-2">${symbol}</span></b>`;
         }
 
-        const updateCharInt16Value = (id, symbol, value, pow, map = (v) => v) => {
+        const updateCharSensorValue = (id, symbol, value, pow, map = (v) => v) => {
             const val = map(readInt16Value(value));
             document.getElementById(id).innerHTML =
                 `<b>${(val * (10 ** pow)).toFixed(-pow)}<span class="blue-text text-lighten-2">${symbol}</span></b>`;
@@ -122,9 +122,9 @@
                 manageCharacteristic(bas, UUID_BAS_BATTERY_LEVEL, (value) => updateCharUint8Value('battery_level', '%', value));
 
                 const ess = await server.getPrimaryService(ESS_ID);
-                manageCharacteristic(ess, UUID_TEMPERATURE, (value) => updateCharInt16Value('temperature', 'C', value, -2));
-                manageCharacteristic(ess, UUID_HUMIDITY, (value) => updateCharInt16Value('hymidity', '%', value, -2));
-                manageCharacteristic(ess, UUID_PRESSURE, (value) => updateCharInt16Value('pressure', 'hPa', value, 0, adjustPressure));
+                manageCharacteristic(ess, UUID_TEMPERATURE, (value) => updateCharSensorValue('temperature', 'C', value, -2));
+                manageCharacteristic(ess, UUID_HUMIDITY, (value) => updateCharSensorValue('hymidity', '%', value, -2));
+                manageCharacteristic(ess, UUID_PRESSURE, (value) => updateCharSensorValue('pressure', 'hPa', value, 0, adjustPressure));
 
                 const aios = await server.getPrimaryService(AIOS_ID);
                 digitalOutputChar = await aios.getCharacteristic(UUID_GATT_DO);
