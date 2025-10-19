@@ -48,9 +48,15 @@
         const IO_MASK_1 = 0x04;
         const IO_MASK_2 = 0x10;
 
+        const RECONNECT_DELAYS_MS = [1500, 3000, 5000];
+
         let device = null;
+        let forceDisconnect = false;
+        let reconnectAttempts = 0;
         let digitalOutputChar = null;
         let digitalOutputState = 0;
+
+        const timeout = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
         const readInt16Value = (value) => {
             const b0 = value.getUint8(0);
@@ -100,9 +106,16 @@
                         services: [BAS_ID, ESS_ID, AIOS_ID],
                     }]
                 });
-                device.addEventListener('gattserverdisconnected', onDisconnected);
                 updateButtons();
+                connect();
+            } catch (e) {
+                console.error(e);
+            }
+        }
 
+        const connect = async () => {
+            try {
+                setCartTitle(`${device.name}⏳`);
                 const server = await device.gatt.connect();
 
                 const bas = await server.getPrimaryService(BAS_ID);
@@ -117,28 +130,39 @@
                 digitalOutputChar = await aios.getCharacteristic(UUID_GATT_DO);
                 const value = await digitalOutputChar.readValue();
                 digitalOutputState = value.getUint8(0);
+
+                device.addEventListener('gattserverdisconnected', onDisconnected);
+
+                setCartTitle(device.name);
                 updateLedButtons();
             } catch (e) {
                 console.error(e);
-                disconnect();
+                onDisconnected();
             }
         }
 
-        const disconnect = () => {
-            if (!device) {
-                onDisconnected();
-                return;
-            }
+        const disconnect = (force) => {
+            forceDisconnect = Boolean(force);
             try {
                 device.gatt.disconnect();
             } catch (e) {
                 console.error(e);
+                onDisconnected();
             }
         }
 
-        const onDisconnected = () => {
-            device = null;
+        const onDisconnected = async () => {
             digitalOutputChar = null;
+            device.removeEventListener('gattserverdisconnected', onDisconnected);
+            if (!forceDisconnect && device && reconnectAttempts < RECONNECT_DELAYS_MS.length) {
+                await timeout(RECONNECT_DELAYS_MS[reconnectAttempts++]);
+                connect();
+                return;
+            }
+            device = null;
+            forceDisconnect = false;
+            reconnectAttempts = 0;
+            setCartTitle('');
             updateButtons();
         }
 
@@ -187,6 +211,10 @@
             localStorage.setItem('altitude', getAltitude());
         }
 
+        const setCartTitle = (title) => {
+            document.getElementById('card_title').innerText = title;
+        }
+
         window.onload = () => {
             const altitude = localStorage.getItem('altitude') ?? '';
             setAltitude(altitude);
@@ -198,7 +226,7 @@
 <body>
     <div class="wrapper card blue-grey darken-1 white-text">
         <div class="card-content min-width-200px">
-            <span class="card-title center">XIAO-Sense</span>
+            <span id="card_title" class="card-title center"></span>
             <div class="valign-wrapper">
                 <i class="material-icons white-text">battery_std</i>
                 <p class="orange-text">
@@ -240,7 +268,7 @@
         </div>
         <div class="card-action center">
             <button id="btn_connect" class="btn blue" onclick="requestDevice()">Request Device</button>
-            <button id="btn_disconnect" class="btn red hide" onclick="disconnect()">Disconnect</button>
+            <button id="btn_disconnect" class="btn red hide" onclick="disconnect(true)">Disconnect</button>
         </div>
     </div>
 </body>
