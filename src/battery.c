@@ -272,7 +272,7 @@ int battery_get_millivolt(uint16_t *battery_millivolt)
     }
 
     uint32_t adc_sum = 0;
-    // Get median average sample value.
+    // Get 25% trimmed mean sample value.
     qsort(sample_buffer, ADC_TOTAL_SAMPLES, sizeof(int16_t), sample_buffer_compare);
     for (uint8_t sample = ADC_TOTAL_SAMPLES / 4; sample < ADC_TOTAL_SAMPLES / 4 + ADC_TOTAL_SAMPLES / 2; sample++)
     {
