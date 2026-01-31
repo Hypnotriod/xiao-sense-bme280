@@ -5,6 +5,8 @@
         read-enable-gpios = <&gpio0 14 GPIO_ACTIVE_LOW>;
         charge-speed-gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
         adc-channel = <NRF_SAADC_AIN7>;
+        adc-total-samples = <12>;
+        adc-filtering-algorithm = "trimmed-mean";
     };
 
     xiao_gpio_header: xiao_gpio_header {
