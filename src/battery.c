@@ -16,7 +16,9 @@
 
 #include "battery.h"
 
+#ifdef CONFIG_BATTERY_ADC_FILTERING_ALGORITHM_TRIMMED_MEAN
 #include <stdlib.h>
+#endif
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
@@ -192,10 +194,12 @@ static void sample_once_handler(struct k_work *work)
     run_sample_ready_callbacks(millivolt);
 }
 
+#ifdef CONFIG_BATTERY_ADC_FILTERING_ALGORITHM_TRIMMED_MEAN
 static int sample_buffer_compare(const void *a, const void *b)
 {
     return (*(int16_t*)a - *(int16_t*)b);
 }
+#endif
 
 //------------------------------------------------------------------------------------------
 // Public functions
@@ -272,6 +276,7 @@ int battery_get_millivolt(uint16_t *battery_millivolt)
     }
 
     uint32_t adc_sum = 0;
+    #ifdef CONFIG_BATTERY_ADC_FILTERING_ALGORITHM_TRIMMED_MEAN
     // Get 25% trimmed mean sample value.
     qsort(sample_buffer, ADC_TOTAL_SAMPLES, sizeof(int16_t), sample_buffer_compare);
     for (uint8_t sample = ADC_TOTAL_SAMPLES / 4; sample < ADC_TOTAL_SAMPLES / 4 + ADC_TOTAL_SAMPLES / 2; sample++)
@@ -279,6 +284,14 @@ int battery_get_millivolt(uint16_t *battery_millivolt)
         adc_sum += sample_buffer[sample]; // ADC value, not millivolt yet.
     }
     uint32_t adc_average = adc_sum / (ADC_TOTAL_SAMPLES / 2);
+    #else
+    // Get average sample value.
+    for (uint8_t sample = 0; sample < ADC_TOTAL_SAMPLES; sample++)
+    {
+        adc_sum += sample_buffer[sample]; // ADC value, not millivolt yet.
+    }
+    uint32_t adc_average = adc_sum / ADC_TOTAL_SAMPLES;
+    #endif
 
     // Convert ADC value to millivolts
     uint32_t adc_mv = adc_average;

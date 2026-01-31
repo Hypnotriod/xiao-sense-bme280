@@ -1,0 +1,17 @@
+source "Kconfig.zephyr"
+
+menu "XIAO Sense Battery Management Library configuration"
+
+choice BATTERY_ADC_FILTERING_ALGORITHM
+    prompt "ADC values filtering algorithm"
+    default BATTERY_ADC_FILTERING_ALGORITHM_AVERAGE
+
+config BATTERY_ADC_FILTERING_ALGORITHM_AVERAGE
+    bool "Average"
+
+config BATTERY_ADC_FILTERING_ALGORITHM_TRIMMED_MEAN
+    bool "Trimmed-Mean"
+
+endchoice
+
+endmenu
