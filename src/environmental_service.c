@@ -122,7 +122,7 @@ static void sample_periodic_handler(struct k_work *work)
     bt_gatt_notify(NULL, &ess_service.attrs[6], &pressure, sizeof(pressure));
     bt_gatt_notify(NULL, &ess_service.attrs[10], &humidity, sizeof(humidity));
 
-    LOG_INF("Temp: %i.%i DegC; Press: %i hPa; Humidity: %i.%i %%RH", SENSOR_VAL_FORMAT(temperature), pressure,
+    LOG_INF("Temp: %i.%02i DegC; Press: %i hPa; Humidity: %i.%02i %%RH", SENSOR_VAL_FORMAT(temperature), pressure,
             SENSOR_VAL_FORMAT(humidity));
 
 reschedule:
