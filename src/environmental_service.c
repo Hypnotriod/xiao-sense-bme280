@@ -13,7 +13,7 @@
 
 LOG_MODULE_REGISTER(environmental_service, LOG_LEVEL_INF);
 
-#define SAMPLING_INTERVAL_MS 5000
+#define SAMPLING_INTERVAL_MS 15000
 
 const struct device *const bme280_dev = DEVICE_DT_GET(DT_NODELABEL(bme280_dev));
 

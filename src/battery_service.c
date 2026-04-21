@@ -5,7 +5,7 @@
 
 #include "battery.h"
 
-#define SAMPLING_INTERVAL_MS 5000
+#define SAMPLING_INTERVAL_MS 15000
 
 LOG_MODULE_REGISTER(battery_service, LOG_LEVEL_INF);
 
