@@ -425,7 +425,7 @@ int battery_init()
 
     if (!gpio_is_ready_dt(&charge_speed))
     {
-        LOG_ERR("GPIO charging_enable not found!");
+        LOG_ERR("GPIO charge_speed not found!");
         return -EIO;
     }
 
