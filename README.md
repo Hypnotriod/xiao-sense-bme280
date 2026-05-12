@@ -5,3 +5,5 @@ Environmental Sensing Service (ESS) implementation based on the bme280 sensor an
 Automation IO Service (AIOS) implementation to control onboard LEDs.  
 
 Battery Service (BAS) implementation based on the [xiao_sense_nrf52840_battery_lib](https://github.com/Tjoms99/xiao_sense_nrf52840_battery_lib).  
+
+Supported `nrf-sdk-v3.2.4`  
